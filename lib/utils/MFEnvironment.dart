@@ -1,0 +1,1 @@
+enum MFEnvironment { TEST, LIVE }

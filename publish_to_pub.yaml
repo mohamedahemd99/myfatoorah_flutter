@@ -1,0 +1,46 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  - master
+
+jobs:
+  - job: Publish
+    condition: contains(variables['Build.SourceVersionMessage'], 'release')
+    displayName: Publish to pub.dev
+    pool:
+      vmImage: ubuntu-latest
+
+    steps:
+      - task: PowerShell@2
+        displayName: Prepare pub credentials
+        inputs:
+          targetType: 'inline'
+          script: |
+            mkdir $HOME/.config/dart/
+            touch $HOME/.config/dart/pub-credentials.json 
+            # PUB_CREDENTIAL_FILE_CONTENT ==> all content in ==> \AppData\Roaming\dart\pub-credentials.json
+            echo '$(PUB_CREDENTIAL_FILE_CONTENT)' > "$HOME/.config/dart/pub-credentials.json"
+
+      - task: PowerShell@2
+        displayName: Install flutter
+        inputs:
+          targetType: 'inline'
+          script: |
+            sudo snap install flutter --classic
+
+      - task: PowerShell@2
+        displayName: Dry Publish
+        inputs:
+          targetType: 'inline'
+          script: |
+            flutter pub publish --dry-run
+
+      - task: PowerShell@2
+        displayName: Publish
+        inputs:
+          targetType: 'inline'
+          script: |
+            flutter pub publish --force
